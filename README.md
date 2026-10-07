@@ -14,7 +14,9 @@ Tab completion works once kubectl's own completion is set up. For the alias in b
 
 ## Install
 
-Get `kubectl-jk` from the latest release, or build it with `make install` (needs Go), which puts it in your Go bin. Then install jk in the cluster:
+Download the archive for your OS and CPU from the latest release and put `kubectl-jk` and `kubectl_complete-jk` on your PATH
+
+Alternatively, build them with `make install` (needs Go), which puts them in your Go bin. Then install jk in the cluster:
 
 ```
 jk install
@@ -127,5 +129,5 @@ make install-microk8s
 - The postgresql-k8s and COS Lite scenarios (`make test-e2e-postgres`, `make test-e2e-cos`) are slow and run in CI. COS needs amd64.
 - Run `make generate` after changing `api/`. CI checks that the output is committed.
 
-Releases are made by pushing a `v*` tag, which publishes the images and the CLI binaries.
+Releases are made by pushing a `v*` tag, which publishes the images and the CLI archives.
 

@@ -7,11 +7,17 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+
+	"github.com/luci1900/jk/pkg/sdk"
 )
 
 func main() {
 	if err := newRoot().Execute(); err != nil {
+		if meta.IsNoMatchError(err) {
+			err = sdk.ErrNotInstalled
+		}
 		var e exitError
 		if !errors.As(err, &e) {
 			label := "ERROR"

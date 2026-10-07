@@ -6,19 +6,19 @@ This is a hobby project, not something to run in production.
 
 ## Install
 
-You need Kubernetes 1.36 or newer.
+You need a cluster running Kubernetes 1.36 or newer. Either of these works:
 
-Download the archive for your OS and CPU from the [latest release](https://github.com/luci1900/jk/releases/latest). Put `kubectl-jk` and `kubectl_complete-jk` on your PATH.
+- **kind:** [install kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation), then `kind create cluster`. A current kind release uses a new enough node image.
+- **MicroK8s:** [install MicroK8s](https://microk8s.io/docs/getting-started) from the `1.36/stable` channel or newer, then `sudo microk8s enable rbac dns hostpath-storage`. Save its kubeconfig with `sudo microk8s config > ~/.kube/microk8s` and use it with `export KUBECONFIG=~/.kube/microk8s`.
 
-Alternatively, build them with `make install` (needs Go), which puts them in your Go bin.
+Download the archive for your OS and CPU from the [latest release](https://github.com/luci1900/jk/releases/latest) and put `kubectl-jk` and `kubectl_complete-jk` on your PATH.
 
-Install jk in the cluster:
-
+Then install jk in the cluster:
 ```
 kubectl jk install
 ```
 
-This installs the CRDs, the operator and the registry in `jk-system` from the release images on ghcr. Run it again to upgrade, and `jk version` shows the versions of the CLI and the operator. `--image-repo` changes where the images come from. On MicroK8s, run `microk8s config > ~/.kube/config` first.
+This installs the CRDs, the operator and the registry in `jk-system` from the release images on ghcr. Run it again to upgrade and `jk version` shows the versions of the CLI and the operator. `--image-repo` changes where the images come from.
 
 `jk uninstall` destroys every model first, so the teardown hooks run, then removes jk. It asks first, `-y` skips that, `--destroy-storage` deletes the volumes (they are kept by default) and `--force` skips the graceful removal.
 
@@ -84,11 +84,13 @@ jk debug-log --include postgresql-k8s/0
 jk set-constraints postgresql-k8s mem=4G
 ```
 
-`resolved` retries a failed hook now, or skips it with `--no-retry`. `ssh` and `scp` use `kubectl exec` and `kubectl cp` on the charm container (`--container` picks another), so they need `kubectl` on the PATH and `tar` in the container. With a terminal, `ssh` into the charm container passes your `TERM` and opens a login bash, and other containers get `/bin/sh`. `debug-log` follows the charm containers of the model's pods. `set-constraints` replaces the old constraints, as in juju. Put `-m` before the unit when you use `ssh`.
+`resolved` retries a failed hook now, or skips it with `--no-retry`.
 
-## As YAML
+`ssh` and `scp` use `kubectl exec` and `kubectl cp` on the charm container (`--container` picks another), so they need `kubectl` on the PATH and `tar` in the container. With a terminal, `ssh` into the charm container passes your `TERM` and opens a login bash, and other containers get `/bin/sh`. `debug-log` follows the charm containers of the model's pods. `set-constraints` replaces the old constraints, as in juju. Put `-m` before the unit when you use `ssh`.
 
-Everything is a normal k8s object, so kubectl and GitOps work. Only the charm name is required.
+## YAML
+
+Everything is a normal k8s object.
 
 ```yaml
 apiVersion: jk.luci1900.github.io/v1alpha1
@@ -121,26 +123,4 @@ kubectl create rolebinding alex-write -n demo --clusterrole=jk-writer --user=ale
 
 - [docs/design.md](docs/design.md) is how it works.
 - [docs/compat.md](docs/compat.md) is how it differs from juju, and what it does not support.
-
-## Development
-
-To run your own build, use one of these. They need Go and Docker, and they build, push or load the images and install jk:
-
-```
-make install-kind
-make install-microk8s
-```
-
-`install-kind` creates a kind cluster named `jk-dev` if there is none, and loads the images into it. `install-microk8s` pushes to MicroK8s's registry addon, enabling it if needed, and uses the `microk8s` kube context. Rerun either after a change, as both restart the operator. `make clean-cluster` deletes the kind cluster.
-
-`make install` only builds the CLI, so its `jk install` pulls the release images from ghcr. Use the targets above for a cluster that runs your build.
-
-`make charm` builds the test charms in `bin/`. They need python3 with pip and network access. Try one with `jk deploy ./bin/jk-test.charm`.
-
-- `make test` and `make test-envtest` are quick.
-- `make install-kind` and then `make test-e2e` (about 2.5 minutes) is the end-to-end check to run locally.
-- The postgresql-k8s and COS Lite scenarios (`make test-e2e-postgres`, `make test-e2e-cos`) are slow and run in CI. COS needs amd64.
-- Run `make generate` after changing `api/`. CI checks that the output is committed.
-
-Releases are made by pushing a `v*` tag, which publishes the images and the CLI archives.
-
+- [docs/dev.md](docs/dev.md) is for building and testing it yourself.

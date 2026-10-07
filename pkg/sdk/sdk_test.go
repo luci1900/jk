@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -10,6 +11,8 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
@@ -166,5 +169,26 @@ func noErr(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
 		t.Fatal(fmt.Sprintf("unexpected error: %v", err))
+	}
+}
+
+// A cluster without jk's API types gets one clear error from the commands that would otherwise look empty or fail oddly.
+func TestNotInstalled(t *testing.T) {
+	scheme := runtime.NewScheme()
+	_ = clientgoscheme.AddToScheme(scheme)
+	c := &Client{Kube: fake.NewClientBuilder().WithScheme(scheme).Build(), Namespace: "m"}
+	ctx := context.Background()
+	if _, err := c.Models(ctx); !errors.Is(err, ErrNotInstalled) {
+		t.Errorf("Models: %v", err)
+	}
+	if err := c.AddModel(ctx, "x"); !errors.Is(err, ErrNotInstalled) {
+		t.Errorf("AddModel: %v", err)
+	}
+	if _, err := c.Status(ctx); !errors.Is(err, ErrNotInstalled) {
+		t.Errorf("Status: %v", err)
+	}
+	var nss corev1.NamespaceList
+	if err := c.Kube.List(ctx, &nss); err != nil || len(nss.Items) != 0 {
+		t.Errorf("AddModel left a namespace behind: %v %v", nss.Items, err)
 	}
 }

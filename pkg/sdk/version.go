@@ -2,7 +2,6 @@ package sdk
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -11,9 +10,6 @@ import (
 
 	"github.com/luci1900/jk/api/v1alpha1"
 )
-
-// ErrNotInstalled means the cluster has no jk operator.
-var ErrNotInstalled = fmt.Errorf("jk is not installed in the cluster")
 
 // OperatorInfo describes the installed operator.
 type OperatorInfo struct {

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -117,8 +118,25 @@ func (c *Client) wait(ctx context.Context, timeout time.Duration, what string, c
 // ErrNotJKModel means a namespace is not marked as a jk model.
 var ErrNotJKModel = errors.New("not a jk model")
 
+// ErrNotInstalled means the cluster has no jk: its API types are missing.
+var ErrNotInstalled = errors.New("jk is not installed in the cluster: run `kubectl jk install`")
+
+// requireInstalled checks that the cluster serves jk's API types. It asks for one Application: a cluster without
+// the CRDs fails that before any request is made, and any other error (such as no right to list) means jk is there.
+func (c *Client) requireInstalled(ctx context.Context) error {
+	var apps v1alpha1.ApplicationList
+	err := c.Kube.List(ctx, &apps, client.InNamespace(c.Namespace), client.Limit(1))
+	if meta.IsNoMatchError(err) || runtime.IsNotRegisteredError(err) {
+		return ErrNotInstalled
+	}
+	return nil
+}
+
 // requireModel checks that the client's namespace is a live jk model.
 func (c *Client) requireModel(ctx context.Context) error {
+	if err := c.requireInstalled(ctx); err != nil {
+		return err
+	}
 	ns, err := c.namespace(ctx, c.Namespace)
 	if err != nil {
 		return err

@@ -48,6 +48,9 @@ func (c *Client) AddModel(ctx context.Context, name string) error {
 	if name == "" {
 		return fmt.Errorf("model name is required")
 	}
+	if err := c.requireInstalled(ctx); err != nil {
+		return err
+	}
 	ns := &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: name, Labels: map[string]string{v1alpha1.ModelLabel: "true"}}}
 	if err := c.Kube.Create(ctx, ns); err != nil {
 		if apierrors.IsAlreadyExists(err) {
@@ -60,6 +63,9 @@ func (c *Client) AddModel(ctx context.Context, name string) error {
 
 // Models lists the jk models.
 func (c *Client) Models(ctx context.Context) ([]Model, error) {
+	if err := c.requireInstalled(ctx); err != nil {
+		return nil, err
+	}
 	var nss corev1.NamespaceList
 	if err := c.Kube.List(ctx, &nss, client.MatchingLabels{v1alpha1.ModelLabel: "true"}); err != nil {
 		return nil, err

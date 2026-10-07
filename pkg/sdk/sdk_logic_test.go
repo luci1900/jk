@@ -126,3 +126,18 @@ func TestFormatPorts(t *testing.T) {
 		t.Fatalf("%v", got)
 	}
 }
+
+func TestImageTag(t *testing.T) {
+	for image, want := range map[string]string{
+		"ghcr.io/luci1900/jk-operator:v1":            "v1",
+		"ghcr.io/luci1900/jk-operator:v1@sha256:abc": "v1",
+		"kind.local/jk-operator:719f4b2":             "719f4b2",
+		"localhost:32000/jk-operator":                "",
+		"localhost:32000/jk-operator@sha256:abc":     "",
+		"jk-operator":                                "",
+	} {
+		if got := imageTag(image); got != want {
+			t.Errorf("imageTag(%q) = %q, want %q", image, got, want)
+		}
+	}
+}

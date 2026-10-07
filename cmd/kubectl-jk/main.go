@@ -46,7 +46,7 @@ func newRootWith(cli *cli) *cobra.Command {
 	root.PersistentFlags().StringVarP(flags.Namespace, "model", "m", "", "the model (the namespace); default: the kube context's namespace")
 	root.PersistentFlags().StringVar(flags.Namespace, "namespace", "", "the model (kubectl's name for it)")
 	_ = root.PersistentFlags().MarkHidden("namespace")
-	root.AddCommand(newInstallCmd(flags), cli.uninstallCmd(), newVersionCmd())
+	root.AddCommand(newInstallCmd(flags), cli.uninstallCmd(), cli.versionCmd())
 	for _, c := range cli.commands() {
 		root.AddCommand(c)
 	}

@@ -64,8 +64,8 @@ func TestVersion(t *testing.T) {
 	root := newRoot()
 	var out bytes.Buffer
 	root.SetOut(&out)
-	root.SetArgs([]string{"version"})
-	if err := root.Execute(); err != nil || strings.TrimSpace(out.String()) == "" {
+	root.SetArgs([]string{"version", "--client"})
+	if err := root.Execute(); err != nil || !strings.HasPrefix(out.String(), "client: ") || strings.Contains(out.String(), "operator") {
 		t.Fatalf("version: %q %v", out.String(), err)
 	}
 }

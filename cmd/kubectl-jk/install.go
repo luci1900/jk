@@ -116,11 +116,3 @@ func (c *cli) uninstallCmd() *cobra.Command {
 	cmd.Flags().StringVar(&timeout, "timeout", "", "how long to wait for each model's graceful removal (default 10m)")
 	return cmd
 }
-
-func newVersionCmd() *cobra.Command {
-	return &cobra.Command{
-		Use:   "version",
-		Short: "Print the jk version",
-		Run:   func(cmd *cobra.Command, _ []string) { fmt.Fprintln(cmd.OutOrStdout(), version.Version) },
-	}
-}

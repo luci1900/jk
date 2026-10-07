@@ -1,49 +1,59 @@
 # jk
 
-jk runs juju sidecar charms on Kubernetes with the k8s API as its only control plane. There is no controller. Charms run as they would under juju, and you drive them with `kubectl jk`, a CLI that follows juju's commands.
+jk runs juju sidecar charms on Kubernetes with the k8s API as its only control plane. There is no controller. Charms run as they would under juju and you can interact with them using `kubectl jk`.
 
-jk runs as a kubectl plugin, `kubectl jk <command>`. It uses your kubeconfig and the current kube context. A model is a namespace. `-m <model>` picks one, and the default is the context's namespace. `--help` on any command lists its flags.
-
-To type `jk` instead of `kubectl jk`, add an alias to your shell:
-
-```
-alias jk='kubectl jk'
-```
-
-Tab completion works once kubectl's own completion is set up. For the alias in bash, also add `complete -o default -F __start_kubectl jk`.
+This is a hobby project, not something to run in production.
 
 ## Install
 
-Download the archive for your OS and CPU from the latest release and put `kubectl-jk` and `kubectl_complete-jk` on your PATH
+You need Kubernetes 1.36 or newer.
 
-Alternatively, build them with `make install` (needs Go), which puts them in your Go bin. Then install jk in the cluster:
+Download the archive for your OS and CPU from the [latest release](https://github.com/luci1900/jk/releases/latest). Put `kubectl-jk` and `kubectl_complete-jk` on your PATH.
+
+Alternatively, build them with `make install` (needs Go), which puts them in your Go bin.
+
+Install jk in the cluster:
 
 ```
-jk install
+kubectl jk install
 ```
 
-This installs the CRDs, the operator and the registry in `jk-system` from the release images on ghcr. Run it again to upgrade. `--image-repo` changes where the images come from.
-
-On MicroK8s, run `microk8s config > ~/.kube/config` first.
+This installs the CRDs, the operator and the registry in `jk-system` from the release images on ghcr. Run it again to upgrade, and `jk version` shows the versions of the CLI and the operator. `--image-repo` changes where the images come from. On MicroK8s, run `microk8s config > ~/.kube/config` first.
 
 `jk uninstall` destroys every model first, so the teardown hooks run, then removes jk. It asks first, `-y` skips that, `--destroy-storage` deletes the volumes (they are kept by default) and `--force` skips the graceful removal.
+
+jk is a kubectl plugin, `kubectl jk <command>`. It uses your kubeconfig and the current kube context. A model is a namespace. `-m <model>` picks one, and the default is the context's namespace. `--help` on any command lists its flags. To type `jk` instead of `kubectl jk`, add `alias jk='kubectl jk'` to your shell, as the examples below do.
+
+Tab completion works once kubectl's own completion is set up. For the alias in bash, also add `complete -o default -F __start_kubectl jk`.
+
+## Try it
+
+Deploy PostgreSQL and a charm that wants a database:
+
+```
+jk add-model demo
+jk deploy postgresql-k8s --channel 14/stable --trust
+jk deploy data-integrator --config database-name=test
+jk integrate data-integrator postgresql-k8s
+jk status --relations --watch
+jk run data-integrator/leader get-credentials
+jk ssh postgresql-k8s/0
+jk destroy-model demo
+```
+
+`add-model` also switches your kube context to the new namespace. Wait in `status` until both applications are active, which takes a few minutes while the images download. `get-credentials` prints the database's endpoint, username and password. `destroy-model` waits for the teardown hooks, `--force` deletes the namespace at once, and volumes are kept unless you pass `--destroy-storage`.
 
 ## Models
 
 ```
-jk add-model demo
 jk models
 jk switch demo
 jk model-config
-jk destroy-model demo
 ```
-
-`destroy-model` waits for the teardown hooks. `--force` deletes the namespace at once. Volumes are kept unless you pass `--destroy-storage`.
 
 ## Applications
 
 ```
-jk deploy postgresql-k8s --channel 14/stable --trust -n 3
 jk deploy ./my.charm
 jk config postgresql-k8s profile=testing
 jk scale-application postgresql-k8s 1
@@ -53,26 +63,24 @@ jk remove-application postgresql-k8s
 
 `--trust` gives the charm cluster access, and `--scope=namespace` narrows it. `jk find` and `info` search Charmhub.
 
-## Relations and offers
+## Offers
+
+An offer lets other models relate to an application:
 
 ```
-jk integrate data-integrator postgresql-k8s
 jk offer postgresql-k8s:database -m db
 jk integrate data-integrator db.postgresql-k8s --alias pg
 ```
 
-An offer lets other models relate to an application. `offer --allow <model>,...` says which models may use it (`*` for all). The default comes from the model config `offer-allowed-models`.
+`offer --allow <model>,...` says which models may use it (`*` for all). The default comes from the model config `offer-allowed-models`.
 
 ## Day to day
 
 ```
-jk status --relations --watch
-jk run data-integrator/leader get-credentials
 jk exec --unit postgresql-k8s/0 -- ls /
 jk resolved postgresql-k8s/0
 jk show-unit postgresql-k8s/0
 jk debug-log --include postgresql-k8s/0
-jk ssh postgresql-k8s/0
 jk set-constraints postgresql-k8s mem=4G
 ```
 
@@ -108,6 +116,11 @@ Users are k8s users. `install` creates the ClusterRoles `jk-reader`, `jk-writer`
 ```
 kubectl create rolebinding alex-write -n demo --clusterrole=jk-writer --user=alex
 ```
+
+## More
+
+- [docs/design.md](docs/design.md) is how it works.
+- [docs/compat.md](docs/compat.md) is how it differs from juju, and what it does not support.
 
 ## Development
 

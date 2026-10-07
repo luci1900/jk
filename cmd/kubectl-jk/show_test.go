@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -196,5 +197,28 @@ func TestModelConfigResetAndSet(t *testing.T) {
 	}
 	if out, _, _ := e.run("model-config", "logging-config"); out != "y\n" {
 		t.Errorf("not set: %q", out)
+	}
+}
+
+func TestVersionShowsOperator(t *testing.T) {
+	e := newEnv(t)
+	out, _, err := e.run("version")
+	if err != nil || !strings.Contains(out, "operator: not installed") {
+		t.Fatalf("%q %v", out, err)
+	}
+	replicas := int32(1)
+	op := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{Namespace: v1alpha1.SystemNamespace, Name: "jk-operator"},
+		Spec: appsv1.DeploymentSpec{Replicas: &replicas, Template: corev1.PodTemplateSpec{
+			Spec: corev1.PodSpec{Containers: []corev1.Container{{Name: "operator", Image: "ghcr.io/luci1900/jk-operator:v1@sha256:abc"}}}}},
+		Status: appsv1.DeploymentStatus{ReadyReplicas: 1},
+	}
+	e = newEnv(t, op)
+	out, _, err = e.run("version")
+	if err != nil || !strings.Contains(out, "operator: v1 (ghcr.io/luci1900/jk-operator:v1@sha256:abc, 1/1 ready)") || !strings.Contains(out, "differs from the client") {
+		t.Fatalf("%q %v", out, err)
+	}
+	if out, _, _ = e.run("version", "--client"); strings.Contains(out, "operator") {
+		t.Errorf("--client asked the cluster: %q", out)
 	}
 }

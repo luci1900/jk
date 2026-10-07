@@ -1,0 +1,48 @@
+name: cos
+# COS Lite (prometheus, loki, grafana) in its own model, consumed through offers by the model of postgresql-k8s. Its charms exist for amd64 only, so it runs here and not on Apple silicon.
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  cos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        cluster: [kind, microk8s]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/share/swift /usr/local/share/powershell /opt/az /usr/local/julia*
+          sudo docker image prune --all --force
+          df -h /
+      - uses: actions/setup-go@v5
+        with: {go-version-file: go.mod}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Install jk on kind
+        if: matrix.cluster == 'kind'
+        run: |
+          make dev
+          echo "JK_E2E_CONTEXT=kind-jk-dev" >> "$GITHUB_ENV"
+      - name: Set up MicroK8s and install jk
+        if: matrix.cluster == 'microk8s'
+        run: |
+          sudo snap install microk8s --classic --channel=1.36/stable
+          sudo microk8s status --wait-ready
+          sudo microk8s enable rbac
+          sudo microk8s status --wait-ready
+          sudo microk8s enable dns hostpath-storage registry
+          sudo microk8s status --wait-ready
+          mkdir -p ~/.kube
+          sudo microk8s config > ~/.kube/config
+          sudo chown "$USER" ~/.kube/config
+          echo "JK_E2E_CONTEXT=microk8s" >> "$GITHUB_ENV"
+          # The registry addon returns before its pod is up.
+          sudo microk8s kubectl -n container-registry rollout status deploy/registry --timeout=300s
+          make dev-microk8s KUBE_CONTEXT=microk8s
+      - run: kubectl --context "$JK_E2E_CONTEXT" -n jk-system rollout status deploy/jk-operator deploy/jk-registry --timeout=300s
+      - run: make test-e2e-cos

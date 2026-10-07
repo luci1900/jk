@@ -1,0 +1,74 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version-file: go.mod}
+      - run: make generate && git diff --exit-code
+      - run: gofmt -l . | tee /dev/stderr | (! read)
+      - run: go vet ./... && go vet -tags e2e,postgres ./...
+      - run: make test
+      - run: make test-envtest
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install 'ops[testing]' pytest
+      - run: make test-charm PYTHON=python
+
+  # The same e2e scenarios on both clusters: kind (what developers use) and MicroK8s (what juju and charm CI use).
+  e2e:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        cluster: [kind, microk8s]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version-file: go.mod}
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+
+      - name: Install jk on kind
+        if: matrix.cluster == 'kind'
+        run: |
+          make dev
+          echo "JK_E2E_CONTEXT=kind-jk-dev" >> "$GITHUB_ENV"
+
+      - name: Set up MicroK8s
+        if: matrix.cluster == 'microk8s'
+        run: |
+          sudo snap install microk8s --classic --channel=1.36/stable
+          sudo microk8s status --wait-ready
+          sudo microk8s enable rbac
+          sudo microk8s status --wait-ready
+          sudo microk8s enable dns hostpath-storage registry
+          sudo microk8s status --wait-ready
+          mkdir -p ~/.kube
+          sudo microk8s config > ~/.kube/config
+          sudo chown "$USER" ~/.kube/config
+          echo "JK_E2E_CONTEXT=microk8s" >> "$GITHUB_ENV"
+      - name: Install jk on MicroK8s
+        if: matrix.cluster == 'microk8s'
+        run: |
+          # The registry addon returns before its pod is up.
+          sudo microk8s kubectl -n container-registry rollout status deploy/registry --timeout=300s
+          make dev-microk8s KUBE_CONTEXT=microk8s
+
+      - run: kubectl --context "$JK_E2E_CONTEXT" -n jk-system rollout status deploy/jk-operator deploy/jk-registry --timeout=300s
+      - run: make test-e2e
+      - name: Cluster state on failure
+        if: failure()
+        run: |
+          kubectl --context "$JK_E2E_CONTEXT" get pods -A
+          kubectl --context "$JK_E2E_CONTEXT" -n jk-system logs deploy/jk-operator --tail=200 || true
+          kubectl --context "$JK_E2E_CONTEXT" get events -A --sort-by=.lastTimestamp | tail -50 || true

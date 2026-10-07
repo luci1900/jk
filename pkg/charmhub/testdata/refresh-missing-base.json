@@ -1,0 +1,17 @@
+{
+    "error-list": [],
+    "results": [
+        {
+            "charm": null,
+            "error": {
+                "code": "missing-charm-base",
+                "message": "Instance key 'k1' missing required field 'base' in 'install' for charm_id=y2vuZHGLElMmdfcL4q1zJayL9utaheIa name=postgresql-k8s"
+            },
+            "id": "y2vuZHGLElMmdfcL4q1zJayL9utaheIa",
+            "instance-key": "k1",
+            "name": "postgresql-k8s",
+            "released-at": null,
+            "result": "error"
+        }
+    ]
+}

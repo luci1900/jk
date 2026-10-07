@@ -1,0 +1,603 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+  name: pg
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+  name: pg
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+rules:
+- apiGroups:
+  - jk.luci1900.github.io
+  resources:
+  - applications
+  - appdata
+  - unitdata
+  - actions
+  - relations
+  - remotedata
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - jk.luci1900.github.io
+  resources:
+  - unitdata
+  - appdata
+  verbs:
+  - create
+  - update
+  - patch
+- apiGroups:
+  - jk.luci1900.github.io
+  resources:
+  - actions/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - create
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+  name: pg
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pg
+subjects:
+- kind: ServiceAccount
+  name: pg
+  namespace: db
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+  name: pg-jk-secrets
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+rules:
+- apiGroups:
+  - ""
+  resourceNames:
+  - jk-secret-abc
+  - jk-secret-abc-1
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resourceNames:
+  - jk-secret-def
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+  name: pg-jk-secrets
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pg-jk-secrets
+subjects:
+- kind: ServiceAccount
+  name: pg
+  namespace: db
+---
+apiVersion: jk.luci1900.github.io/v1alpha1
+kind: Relation
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+    jk.luci1900.github.io/peer-endpoint: database-peers
+  name: pg.database-peers
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+spec:
+  endpoints:
+  - application: pg
+    endpoint: database-peers
+    namespace: db
+status: {}
+---
+apiVersion: jk.luci1900.github.io/v1alpha1
+kind: Relation
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+    jk.luci1900.github.io/peer-endpoint: my_peers
+  name: pg.my-peers
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+spec:
+  endpoints:
+  - application: pg
+    endpoint: my_peers
+    namespace: db
+status: {}
+---
+apiVersion: jk.luci1900.github.io/v1alpha1
+kind: Relation
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+    jk.luci1900.github.io/peer-endpoint: restart
+  name: pg.restart
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+spec:
+  endpoints:
+  - application: pg
+    endpoint: restart
+    namespace: db
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+  name: pg-endpoints
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app.kubernetes.io/name: pg
+status:
+  loadBalancer: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+  name: pg
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+spec:
+  ports:
+  - name: juju-5432-tcp
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+  - name: juju-8008-tcp
+    port: 8008
+    protocol: TCP
+    targetPort: 8008
+  selector:
+    app.kubernetes.io/name: pg
+status:
+  loadBalancer: {}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+  name: pg
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Delete
+    whenScaled: Delete
+  podManagementPolicy: Parallel
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pg
+  serviceName: pg-endpoints
+  template:
+    metadata:
+      annotations:
+        jk.luci1900.github.io/charm-image: jk-registry.jk-system.svc:5000/charms@sha256:abc
+        jk.luci1900.github.io/charm-revision: "0"
+      labels:
+        app.kubernetes.io/name: pg
+        jk.luci1900.github.io/app: pg
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - args:
+        - run
+        - --http
+        - :38812
+        - --verbose
+        command:
+        - /charm/bin/pebble
+        env:
+        - name: JUJU_CONTAINER_NAMES
+          value: exporter,postgresql
+        - name: JK_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: JK_NAMESPACE
+          value: db
+        - name: JK_MODEL_NAME
+          value: db
+        - name: JK_MODEL_UUID
+          value: ns-uid
+        - name: JK_APP
+          value: pg
+        - name: JK_CHARM_IMAGE
+          value: jk-registry.jk-system.svc:5000/charms@sha256:abc
+        - name: HTTP_PROBE_PORT
+          value: "3856"
+        image: ghcr.io/juju/charm-base:ubuntu-22.04
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/health?level=alive
+            port: 38812
+          periodSeconds: 5
+        name: charm
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/health?level=ready
+            port: 38812
+          periodSeconds: 1
+        resources: {}
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /v1/health?level=alive
+            port: 38812
+          periodSeconds: 1
+        volumeMounts:
+        - mountPath: /charm/bin
+          name: charm-data
+          readOnly: true
+          subPath: charm/bin
+        - mountPath: /var/lib/juju
+          name: charm-data
+          subPath: var/lib/juju
+        - mountPath: /charm/containers
+          name: charm-data
+          subPath: charm/containers
+        - mountPath: /var/lib/pebble/default
+          name: charm-data
+          subPath: containeragent/pebble
+        - mountPath: /var/log/juju
+          name: charm-data
+          subPath: containeragent/var/log/juju
+        - mountPath: /var/lib/postgresql/data
+          name: pg-pgdata-00000000
+        workingDir: /var/lib/juju
+      - args:
+        - run
+        - --create-dirs
+        - --hold
+        - --http
+        - :38813
+        - --verbose
+        command:
+        - /charm/bin/pebble
+        env:
+        - name: JUJU_CONTAINER_NAME
+          value: exporter
+        - name: PEBBLE_SOCKET
+          value: /charm/container/pebble.socket
+        - name: PEBBLE
+          value: /charm/container/pebble
+        - name: PEBBLE_COPY_ONCE
+          value: /var/lib/pebble/default
+        image: example.com/exporter:2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/health?level=alive
+            port: 38813
+          periodSeconds: 5
+        name: exporter
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/health?level=ready
+            port: 38813
+          periodSeconds: 1
+        resources: {}
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /v1/health?level=alive
+            port: 38813
+          periodSeconds: 1
+        volumeMounts:
+        - mountPath: /charm/bin/pebble
+          name: charm-data
+          readOnly: true
+          subPath: charm/bin/pebble
+        - mountPath: /charm/container
+          name: charm-data
+          subPath: charm/containers/exporter
+      - args:
+        - run
+        - --create-dirs
+        - --hold
+        - --http
+        - :38814
+        - --verbose
+        command:
+        - /charm/bin/pebble
+        env:
+        - name: JUJU_CONTAINER_NAME
+          value: postgresql
+        - name: PEBBLE_SOCKET
+          value: /charm/container/pebble.socket
+        - name: PEBBLE
+          value: /charm/container/pebble
+        - name: PEBBLE_COPY_ONCE
+          value: /var/lib/pebble/default
+        image: ghcr.io/canonical/charmed-postgresql@sha256:11db
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/health?level=alive
+            port: 38814
+          periodSeconds: 5
+        name: postgresql
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/health?level=ready
+            port: 38814
+          periodSeconds: 1
+        resources: {}
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /v1/health?level=alive
+            port: 38814
+          periodSeconds: 1
+        volumeMounts:
+        - mountPath: /charm/bin/pebble
+          name: charm-data
+          readOnly: true
+          subPath: charm/bin/pebble
+        - mountPath: /charm/container
+          name: charm-data
+          subPath: charm/containers/postgresql
+        - mountPath: /var/lib/postgresql/data
+          name: pg-pgdata-00000000
+      enableServiceLinks: false
+      initContainers:
+      - args:
+        - init
+        - --pebble-dir=/containeragent/pebble
+        - --data-dir=/var/lib/juju
+        - --bin-dir=/charm/bin
+        - --charm-image=jk-registry.jk-system.svc:5000/charms@sha256:abc
+        env:
+        - name: JUJU_CONTAINER_NAMES
+          value: exporter,postgresql
+        - name: JK_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: JK_NAMESPACE
+          value: db
+        - name: JK_MODEL_NAME
+          value: db
+        - name: JK_MODEL_UUID
+          value: ns-uid
+        - name: JK_APP
+          value: pg
+        - name: JK_CHARM_IMAGE
+          value: jk-registry.jk-system.svc:5000/charms@sha256:abc
+        image: kind.local/jk-agent:dev
+        imagePullPolicy: IfNotPresent
+        name: charm-init
+        resources: {}
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /var/lib/juju
+          name: charm-data
+          subPath: var/lib/juju
+        - mountPath: /charm/bin
+          name: charm-data
+          subPath: charm/bin
+        - mountPath: /charm/containers
+          name: charm-data
+          subPath: charm/containers
+        - mountPath: /containeragent/pebble
+          name: charm-data
+          subPath: containeragent/pebble
+        workingDir: /var/lib/juju
+      serviceAccountName: pg
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: charm-data
+  updateStrategy: {}
+  volumeClaimTemplates:
+  - metadata:
+      labels:
+        app.kubernetes.io/name: pg
+        jk.luci1900.github.io/app: pg
+      name: pg-pgdata-00000000
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 2Gi
+    status: {}
+status:
+  availableReplicas: 0
+  replicas: 0

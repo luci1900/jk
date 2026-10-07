@@ -1,0 +1,5 @@
+options:
+  poll:
+    type: int
+    default: 0
+    description: Changing the value runs config-changed, which reads the provider's data and secret again.

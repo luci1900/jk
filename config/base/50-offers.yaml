@@ -1,0 +1,48 @@
+# Offers: a Relation that names another namespace is allowed if an Offer of that namespace allows the consumer's
+# namespace (the operator keeps the pairs in jk-offer-access), or if the requester may create relations there.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jk-offer-access
+  namespace: jk-system
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: jk-relations-across-namespaces
+spec:
+  failurePolicy: Fail
+  paramKind:
+    apiVersion: v1
+    kind: ConfigMap
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [jk.luci1900.github.io]
+        apiVersions: ["*"]
+        operations: [CREATE, UPDATE]
+        resources: [relations]
+  variables:
+    - name: access
+      expression: "has(params.data) ? params.data : {}"
+  validations:
+    - expression: "object.spec.endpoints.exists(e, e.namespace == object.metadata.namespace)"
+      message: "a relation must have an endpoint in its own namespace"
+    - expression: >-
+        object.spec.endpoints.all(e,
+        e.namespace == object.metadata.namespace ||
+        (e.namespace + '.' + object.metadata.namespace) in variables.access ||
+        (e.namespace + '._all') in variables.access ||
+        authorizer.group('jk.luci1900.github.io').resource('relations').namespace(e.namespace).check('create').allowed())
+      message: "a relation to another namespace needs an offer there that allows this namespace, or permission to create relations in that namespace"
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: jk-relations-across-namespaces
+spec:
+  policyName: jk-relations-across-namespaces
+  validationActions: [Deny]
+  paramRef:
+    name: jk-offer-access
+    namespace: jk-system
+    parameterNotFoundAction: Deny

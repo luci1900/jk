@@ -1,0 +1,45 @@
+# Plain RBAC for jk users: bind with `kubectl create rolebinding`.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: jk-reader
+rules:
+  - apiGroups: [jk.luci1900.github.io]
+    resources: [applications, relations, unitdata, appdata, actions, offers, remotedata]
+    verbs: [get, list, watch]
+  - apiGroups: [""]
+    resources: [pods, pods/log, configmaps, events]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: jk-writer
+rules:
+  - apiGroups: [jk.luci1900.github.io]
+    resources: [applications, relations, actions, offers]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [jk.luci1900.github.io]
+    resources: [unitdata, appdata, remotedata]
+    verbs: [get, list, watch]
+  - apiGroups: [""]
+    resources: [pods, pods/log, configmaps, events]
+    verbs: [get, list, watch]
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [patch]   # `resolved` annotates the unit's pod
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: jk-admin
+rules:
+  - apiGroups: [jk.luci1900.github.io]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: [pods, pods/log, configmaps, events, secrets]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: [pods/exec, pods/attach]
+    verbs: [create, get]

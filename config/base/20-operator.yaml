@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jk-operator
+  namespace: jk-system
+  labels: {app.kubernetes.io/name: jk-operator, app.kubernetes.io/part-of: jk}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app.kubernetes.io/name: jk-operator}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: jk-operator, app.kubernetes.io/part-of: jk}
+    spec:
+      serviceAccountName: jk-operator
+      containers:
+        - name: operator
+          image: JK_OPERATOR_IMAGE
+          args: [--leader-elect]
+          env:
+            - {name: JK_AGENT_IMAGE, value: JK_AGENT_IMAGE_REF}
+            # Push credentials for jk-registry (Charmhub charms are stored there by the operator).
+            - name: JK_REGISTRY_USERNAME
+              valueFrom: {secretKeyRef: {name: jk-registry-auth, key: username}}
+            - name: JK_REGISTRY_PASSWORD
+              valueFrom: {secretKeyRef: {name: jk-registry-auth, key: password}}
+          ports:
+            - {name: health, containerPort: 8081}
+          readinessProbe:
+            httpGet: {path: /readyz, port: health}
+          livenessProbe:
+            httpGet: {path: /healthz, port: health}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        # Charms are spooled here while they are downloaded from Charmhub and pushed to jk-registry.
+        - name: tmp
+          emptyDir: {sizeLimit: 2Gi}

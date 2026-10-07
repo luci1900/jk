@@ -1,0 +1,17 @@
+{
+    "error-list": [],
+    "results": [
+        {
+            "charm": null,
+            "error": {
+                "code": "name-not-found",
+                "message": "The Charm with the given name was not found in the Store."
+            },
+            "id": null,
+            "instance-key": "k1",
+            "name": "nosuchcharmxyz",
+            "released-at": null,
+            "result": "error"
+        }
+    ]
+}

@@ -1,0 +1,209 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: jk
+    app.kubernetes.io/name: pg
+    jk.luci1900.github.io/app: pg
+  name: pg
+  namespace: db
+  ownerReferences:
+  - apiVersion: jk.luci1900.github.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: Application
+    name: pg
+    uid: app-uid
+spec:
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Delete
+    whenScaled: Delete
+  podManagementPolicy: Parallel
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pg
+  serviceName: pg-endpoints
+  template:
+    metadata:
+      annotations:
+        jk.luci1900.github.io/charm-image: jk-registry.jk-system.svc:5000/charms@sha256:abc
+        jk.luci1900.github.io/charm-revision: "0"
+      labels:
+        app.kubernetes.io/name: pg
+        jk.luci1900.github.io/app: pg
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - args:
+        - run
+        - --http
+        - :38812
+        - --verbose
+        command:
+        - /charm/bin/pebble
+        env:
+        - name: JUJU_CONTAINER_NAMES
+          value: workload
+        - name: JK_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: JK_NAMESPACE
+          value: db
+        - name: JK_MODEL_NAME
+          value: db
+        - name: JK_MODEL_UUID
+          value: ns-uid
+        - name: JK_APP
+          value: pg
+        - name: JK_CHARM_IMAGE
+          value: jk-registry.jk-system.svc:5000/charms@sha256:abc
+        - name: HTTP_PROBE_PORT
+          value: "3856"
+        image: ghcr.io/juju/charm-base:ubuntu-22.04
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/health?level=alive
+            port: 38812
+          periodSeconds: 5
+        name: charm
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/health?level=ready
+            port: 38812
+          periodSeconds: 1
+        resources: {}
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /v1/health?level=alive
+            port: 38812
+          periodSeconds: 1
+        volumeMounts:
+        - mountPath: /charm/bin
+          name: charm-data
+          readOnly: true
+          subPath: charm/bin
+        - mountPath: /var/lib/juju
+          name: charm-data
+          subPath: var/lib/juju
+        - mountPath: /charm/containers
+          name: charm-data
+          subPath: charm/containers
+        - mountPath: /var/lib/pebble/default
+          name: charm-data
+          subPath: containeragent/pebble
+        - mountPath: /var/log/juju
+          name: charm-data
+          subPath: containeragent/var/log/juju
+        workingDir: /var/lib/juju
+      - args:
+        - run
+        - --create-dirs
+        - --hold
+        - --http
+        - :38813
+        - --verbose
+        command:
+        - /charm/bin/pebble
+        env:
+        - name: JUJU_CONTAINER_NAME
+          value: workload
+        - name: PEBBLE_SOCKET
+          value: /charm/container/pebble.socket
+        - name: PEBBLE
+          value: /charm/container/pebble
+        - name: PEBBLE_COPY_ONCE
+          value: /var/lib/pebble/default
+        image: busybox:1
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/health?level=alive
+            port: 38813
+          periodSeconds: 5
+        name: workload
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /v1/health?level=ready
+            port: 38813
+          periodSeconds: 1
+        resources: {}
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /v1/health?level=alive
+            port: 38813
+          periodSeconds: 1
+        volumeMounts:
+        - mountPath: /charm/bin/pebble
+          name: charm-data
+          readOnly: true
+          subPath: charm/bin/pebble
+        - mountPath: /charm/container
+          name: charm-data
+          subPath: charm/containers/workload
+      enableServiceLinks: false
+      initContainers:
+      - args:
+        - init
+        - --pebble-dir=/containeragent/pebble
+        - --data-dir=/var/lib/juju
+        - --bin-dir=/charm/bin
+        - --charm-image=jk-registry.jk-system.svc:5000/charms@sha256:abc
+        env:
+        - name: JUJU_CONTAINER_NAMES
+          value: workload
+        - name: JK_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: JK_NAMESPACE
+          value: db
+        - name: JK_MODEL_NAME
+          value: db
+        - name: JK_MODEL_UUID
+          value: ns-uid
+        - name: JK_APP
+          value: pg
+        - name: JK_CHARM_IMAGE
+          value: jk-registry.jk-system.svc:5000/charms@sha256:abc
+        image: kind.local/jk-agent:dev
+        imagePullPolicy: IfNotPresent
+        name: charm-init
+        resources: {}
+        securityContext:
+          runAsGroup: 0
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /var/lib/juju
+          name: charm-data
+          subPath: var/lib/juju
+        - mountPath: /charm/bin
+          name: charm-data
+          subPath: charm/bin
+        - mountPath: /charm/containers
+          name: charm-data
+          subPath: charm/containers
+        - mountPath: /containeragent/pebble
+          name: charm-data
+          subPath: containeragent/pebble
+        workingDir: /var/lib/juju
+      serviceAccountName: pg
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: charm-data
+  updateStrategy: {}
+status:
+  availableReplicas: 0
+  replicas: 0

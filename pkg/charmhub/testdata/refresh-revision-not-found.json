@@ -1,0 +1,29 @@
+{
+    "error-list": [],
+    "results": [
+        {
+            "charm": {
+                "id": "y2vuZHGLElMmdfcL4q1zJayL9utaheIa",
+                "license": "",
+                "name": "postgresql-k8s",
+                "publisher": {
+                    "display-name": "Data Platform",
+                    "id": "gVVkuxw4C56POG1eszt4RPR3L5Eak8XE",
+                    "username": "data-platform",
+                    "validation": "unproven"
+                },
+                "summary": "Charmed PostgreSQL 14 for Kubernetes",
+                "type": "charm"
+            },
+            "error": {
+                "code": "revision-not-found",
+                "message": "Revision 900 for ubuntu#22.04#amd64 was not found in the Store."
+            },
+            "id": "y2vuZHGLElMmdfcL4q1zJayL9utaheIa",
+            "instance-key": "k1",
+            "name": "postgresql-k8s",
+            "released-at": null,
+            "result": "error"
+        }
+    ]
+}

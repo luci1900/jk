@@ -1,0 +1,17 @@
+options:
+  greeting:
+    type: string
+    default: hello
+    description: Text served by the workload and shown in the unit status.
+  bump-secret:
+    type: int
+    default: 0
+    description: When the leader sees a new value it writes a new revision of the shared secret, so secret-changed fires on the peers.
+  bump-data-secret:
+    type: int
+    default: 0
+    description: When the leader sees a new value it writes a new revision of the secret granted to the related application, so secret-changed fires there.
+  grant-data-secret:
+    type: boolean
+    default: true
+    description: The leader grants the data secret to the related applications while true and revokes the grant when false.

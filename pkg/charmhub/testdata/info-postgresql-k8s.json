@@ -1,0 +1,431 @@
+{
+    "channel-map": [
+        {
+            "channel": {
+                "base": {
+                    "architecture": "amd64",
+                    "channel": "24.04",
+                    "name": "ubuntu"
+                },
+                "name": "16/stable",
+                "released-at": "2026-09-22T00:52:21.801219+00:00",
+                "risk": "stable",
+                "track": "16"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "amd64",
+                        "channel": "24.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 957,
+                "version": "957"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "arm64",
+                    "channel": "24.04",
+                    "name": "ubuntu"
+                },
+                "name": "16/stable",
+                "released-at": "2026-09-22T00:52:21.801219+00:00",
+                "risk": "stable",
+                "track": "16"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "arm64",
+                        "channel": "24.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 958,
+                "version": "958"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "amd64",
+                    "channel": "24.04",
+                    "name": "ubuntu"
+                },
+                "name": "16/candidate",
+                "released-at": "2026-09-16T20:42:34.914974+00:00",
+                "risk": "candidate",
+                "track": "16"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "amd64",
+                        "channel": "24.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 957,
+                "version": "957"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "arm64",
+                    "channel": "24.04",
+                    "name": "ubuntu"
+                },
+                "name": "16/candidate",
+                "released-at": "2026-09-16T20:42:34.914974+00:00",
+                "risk": "candidate",
+                "track": "16"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "arm64",
+                        "channel": "24.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 958,
+                "version": "958"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "amd64",
+                    "channel": "24.04",
+                    "name": "ubuntu"
+                },
+                "name": "16/beta",
+                "released-at": "2026-09-16T20:39:53.709635+00:00",
+                "risk": "beta",
+                "track": "16"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "amd64",
+                        "channel": "24.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 957,
+                "version": "957"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "arm64",
+                    "channel": "24.04",
+                    "name": "ubuntu"
+                },
+                "name": "16/beta",
+                "released-at": "2026-09-16T20:39:53.709635+00:00",
+                "risk": "beta",
+                "track": "16"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "arm64",
+                        "channel": "24.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 958,
+                "version": "958"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "amd64",
+                    "channel": "24.04",
+                    "name": "ubuntu"
+                },
+                "name": "16/edge",
+                "released-at": "2026-10-05T07:27:21.304334+00:00",
+                "risk": "edge",
+                "track": "16"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "amd64",
+                        "channel": "24.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 969,
+                "version": "969"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "arm64",
+                    "channel": "24.04",
+                    "name": "ubuntu"
+                },
+                "name": "16/edge",
+                "released-at": "2026-10-05T07:28:09.690021+00:00",
+                "risk": "edge",
+                "track": "16"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "arm64",
+                        "channel": "24.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 970,
+                "version": "970"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "amd64",
+                    "channel": "20.04",
+                    "name": "ubuntu"
+                },
+                "name": "latest/stable",
+                "released-at": "2022-09-20T12:24:47.229986+00:00",
+                "risk": "stable",
+                "track": "latest"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "amd64",
+                        "channel": "20.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 20,
+                "version": "20"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "amd64",
+                    "channel": "22.04",
+                    "name": "ubuntu"
+                },
+                "name": "14/stable",
+                "released-at": "2026-09-22T00:11:32.109059+00:00",
+                "risk": "stable",
+                "track": "14"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "amd64",
+                        "channel": "22.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 960,
+                "version": "960"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "arm64",
+                    "channel": "22.04",
+                    "name": "ubuntu"
+                },
+                "name": "14/stable",
+                "released-at": "2026-09-22T00:11:32.109059+00:00",
+                "risk": "stable",
+                "track": "14"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "arm64",
+                        "channel": "22.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 959,
+                "version": "959"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "amd64",
+                    "channel": "22.04",
+                    "name": "ubuntu"
+                },
+                "name": "14/candidate",
+                "released-at": "2026-09-16T20:38:16.548593+00:00",
+                "risk": "candidate",
+                "track": "14"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "amd64",
+                        "channel": "22.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 960,
+                "version": "960"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "arm64",
+                    "channel": "22.04",
+                    "name": "ubuntu"
+                },
+                "name": "14/candidate",
+                "released-at": "2026-09-16T20:38:16.548593+00:00",
+                "risk": "candidate",
+                "track": "14"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "arm64",
+                        "channel": "22.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 959,
+                "version": "959"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "amd64",
+                    "channel": "22.04",
+                    "name": "ubuntu"
+                },
+                "name": "14/beta",
+                "released-at": "2026-09-16T20:33:51.618473+00:00",
+                "risk": "beta",
+                "track": "14"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "amd64",
+                        "channel": "22.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 960,
+                "version": "960"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "arm64",
+                    "channel": "22.04",
+                    "name": "ubuntu"
+                },
+                "name": "14/beta",
+                "released-at": "2026-09-16T20:33:51.618473+00:00",
+                "risk": "beta",
+                "track": "14"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "arm64",
+                        "channel": "22.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 959,
+                "version": "959"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "amd64",
+                    "channel": "22.04",
+                    "name": "ubuntu"
+                },
+                "name": "14/edge",
+                "released-at": "2026-10-05T14:48:58.419664+00:00",
+                "risk": "edge",
+                "track": "14"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "amd64",
+                        "channel": "22.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 971,
+                "version": "971"
+            }
+        },
+        {
+            "channel": {
+                "base": {
+                    "architecture": "arm64",
+                    "channel": "22.04",
+                    "name": "ubuntu"
+                },
+                "name": "14/edge",
+                "released-at": "2026-10-05T14:49:28.722611+00:00",
+                "risk": "edge",
+                "track": "14"
+            },
+            "revision": {
+                "bases": [
+                    {
+                        "architecture": "arm64",
+                        "channel": "22.04",
+                        "name": "ubuntu"
+                    }
+                ],
+                "revision": 972,
+                "version": "972"
+            }
+        }
+    ],
+    "default-release": {
+        "channel": {
+            "base": {
+                "architecture": "arm64",
+                "channel": "24.04",
+                "name": "ubuntu"
+            },
+            "name": "16/stable",
+            "released-at": "2026-09-22T00:52:21.801219+00:00",
+            "risk": "stable",
+            "track": "16"
+        },
+        "revision": {
+            "revision": 958
+        }
+    },
+    "id": "y2vuZHGLElMmdfcL4q1zJayL9utaheIa",
+    "name": "postgresql-k8s",
+    "type": "charm"
+}

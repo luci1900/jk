@@ -1,0 +1,97 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.22.0
+  name: remotedata.jk.luci1900.github.io
+spec:
+  group: jk.luci1900.github.io
+  names:
+    kind: RemoteData
+    listKind: RemoteDataList
+    plural: remotedata
+    singular: remotedata
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.application
+      name: Remote
+      type: string
+    - jsonPath: .spec.relationID
+      name: Relation
+      type: integer
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: RemoteData is named after the Relation of its namespace it belongs
+          to.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: |-
+              RemoteDataSpec is the other side's data of a relation to another namespace, copied in by the operator (and only by
+              it): what the application and its units on the other side have set in this one relation.
+            properties:
+              appData:
+                additionalProperties:
+                  type: string
+                description: AppData are the remote application's settings.
+                type: object
+              application:
+                description: |-
+                  Application is the name charms see for the application on the other side (the alias), and Source the real one
+                  as "<namespace>/<application>".
+                type: string
+              relationID:
+                description: RelationID is the id of the relation in this namespace.
+                format: int64
+                type: integer
+              secrets:
+                additionalProperties:
+                  type: integer
+                description: |-
+                  Secrets maps the secrets the other side shares with this one (granted to it) to their latest revision. The
+                  operator keeps copies of them in this namespace; the entry only tells the agents when something changed.
+                type: object
+              source:
+                type: string
+              units:
+                additionalProperties:
+                  description: RemoteUnit is what a remote unit has published in a
+                    relation.
+                  properties:
+                    data:
+                      additionalProperties:
+                        type: string
+                      description: RelationData is a flat string map, as relation
+                        data is in juju.
+                      type: object
+                  type: object
+                description: Units maps a remote unit name ("<alias>/<n>") to its
+                  settings, for the units in the relation.
+                type: object
+            required:
+            - application
+            - relationID
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources: {}

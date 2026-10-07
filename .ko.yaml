@@ -1,0 +1,6 @@
+defaultBaseImage: gcr.io/distroless/static:nonroot
+builds:
+  - id: jk-operator
+    main: ./cmd/jk-operator
+    env: [CGO_ENABLED=0]
+    ldflags: ["-X github.com/luci1900/jk/internal/version.Version={{.Env.VERSION}}"]

@@ -1,0 +1,72 @@
+# jk-registry: a disposable cache of charm images. Pull is anonymous; only the operator and the CLI push, as user `jk` with the jk-registry-auth Secret (created by `install`, not in this file).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jk-registry
+  namespace: jk-system
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests: {storage: 10Gi}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jk-registry
+  namespace: jk-system
+data:
+  config.json: |
+    {
+      "distSpecVersion": "1.1.0",
+      "storage": {"rootDirectory": "/var/lib/registry", "gc": true},
+      "http": {"address": "0.0.0.0", "port": "5000", "auth": {"htpasswd": {"path": "/etc/zot-auth/htpasswd"}},
+        "accessControl": {"repositories": {"**": {
+          "anonymousPolicy": ["read"],
+          "policies": [{"users": ["jk"], "actions": ["read", "create", "update"]}]}}}},
+      "log": {"level": "info"}
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jk-registry
+  namespace: jk-system
+  labels: {app.kubernetes.io/name: jk-registry, app.kubernetes.io/part-of: jk}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app.kubernetes.io/name: jk-registry}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: jk-registry, app.kubernetes.io/part-of: jk}
+    spec:
+      containers:
+        - name: zot
+          image: ghcr.io/project-zot/zot:v2.1.21
+          args: [serve, /etc/zot/config.json]
+          ports:
+            - {name: registry, containerPort: 5000}
+          readinessProbe:
+            httpGet: {path: /v2/, port: registry}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/registry}
+            - {name: config, mountPath: /etc/zot}
+            - {name: auth, mountPath: /etc/zot-auth, readOnly: true}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: jk-registry}
+        - name: config
+          configMap: {name: jk-registry}
+        - name: auth
+          secret: {secretName: jk-registry-auth, items: [{key: htpasswd, path: htpasswd}]}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jk-registry
+  namespace: jk-system
+spec:
+  selector: {app.kubernetes.io/name: jk-registry}
+  ports:
+    - {name: registry, port: 5000, targetPort: registry}

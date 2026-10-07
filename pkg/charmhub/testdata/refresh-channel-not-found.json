@@ -1,0 +1,201 @@
+{
+    "error-list": [],
+    "results": [
+        {
+            "charm": {
+                "id": "y2vuZHGLElMmdfcL4q1zJayL9utaheIa",
+                "license": "",
+                "name": "postgresql-k8s",
+                "publisher": {
+                    "display-name": "Data Platform",
+                    "id": "gVVkuxw4C56POG1eszt4RPR3L5Eak8XE",
+                    "username": "data-platform",
+                    "validation": "unproven"
+                },
+                "summary": "Charmed PostgreSQL 14 for Kubernetes",
+                "type": "charm"
+            },
+            "error": {
+                "code": "revision-not-found",
+                "extra": {
+                    "releases": [
+                        {
+                            "base": {
+                                "architecture": "arm64",
+                                "channel": "24.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "16/stable"
+                        },
+                        {
+                            "base": {
+                                "architecture": "arm64",
+                                "channel": "24.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "16/candidate"
+                        },
+                        {
+                            "base": {
+                                "architecture": "arm64",
+                                "channel": "24.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "16/beta"
+                        },
+                        {
+                            "base": {
+                                "architecture": "arm64",
+                                "channel": "24.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "16/edge"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "24.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "16/stable"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "24.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "16/candidate"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "24.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "16/beta"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "24.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "16/edge"
+                        },
+                        {
+                            "base": {
+                                "architecture": "arm64",
+                                "channel": "22.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "14/stable"
+                        },
+                        {
+                            "base": {
+                                "architecture": "arm64",
+                                "channel": "22.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "14/candidate"
+                        },
+                        {
+                            "base": {
+                                "architecture": "arm64",
+                                "channel": "22.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "14/beta"
+                        },
+                        {
+                            "base": {
+                                "architecture": "arm64",
+                                "channel": "22.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "14/edge"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "22.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "edge"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "22.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "14/stable"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "22.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "14/candidate"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "22.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "14/beta"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "22.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "14/edge"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "20.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "stable"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "20.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "candidate"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "20.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "beta"
+                        },
+                        {
+                            "base": {
+                                "architecture": "amd64",
+                                "channel": "20.04",
+                                "name": "ubuntu"
+                            },
+                            "channel": "edge"
+                        }
+                    ]
+                },
+                "message": "No revision was found in the Store."
+            },
+            "id": "y2vuZHGLElMmdfcL4q1zJayL9utaheIa",
+            "instance-key": "k1",
+            "name": "postgresql-k8s",
+            "released-at": null,
+            "result": "error"
+        }
+    ]
+}

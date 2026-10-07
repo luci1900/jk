@@ -1,0 +1,19 @@
+name: jk-test-client
+display-name: jk test client charm
+summary: Requirer side of jk-test's data endpoint, used by jk's end-to-end tests.
+description: |
+  Runs busybox httpd in a `web` workload container under Pebble and requires the `source` endpoint (interface jk_test_data, provided by jk-test's `data` endpoint). Reads the provider's application and unit data and a secret the provider granted, and writes its own unit and application data.
+assumes:
+  - k8s-api
+containers:
+  web:
+    resource: web-image
+requires:
+  source:
+    interface: jk_test_data
+    limit: 1
+resources:
+  web-image:
+    type: oci-image
+    description: Workload image with an httpd binary.
+    upstream-source: docker.io/library/busybox@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e

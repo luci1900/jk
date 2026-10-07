@@ -1,0 +1,37 @@
+echo:
+  description: Return the parameters as results (nested keys), with log lines.
+  params:
+    text:
+      type: string
+      description: Text to echo.
+    times:
+      type: integer
+      default: 2
+    upper:
+      type: boolean
+      default: false
+    ratio:
+      type: number
+      default: 0.5
+    tags:
+      type: array
+      items:
+        type: string
+      default: []
+  required:
+    - text
+  additionalProperties: false
+fail:
+  description: Set results and then fail with a message.
+  params:
+    message:
+      type: string
+      default: failed on purpose
+sleep:
+  description: Sleep for the given seconds, to test timeouts and aborting.
+  params:
+    seconds:
+      type: integer
+      default: 30
+whoami:
+  description: Return the unit name, whether it is the leader and the task identity from the environment.

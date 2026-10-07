@@ -1,0 +1,115 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.22.0
+  name: actions.jk.luci1900.github.io
+spec:
+  group: jk.luci1900.github.io
+  names:
+    kind: Action
+    listKind: ActionList
+    plural: actions
+    singular: action
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.unit
+      name: Unit
+      type: string
+    - jsonPath: .spec.name
+      name: Action
+      type: string
+    - jsonPath: .status.state
+      name: State
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: 'Action is a juju task: one action run on one unit. The operation
+          id is in the OperationLabel.'
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              name:
+                description: Name is the action name, or "juju-exec".
+                type: string
+              parameters:
+                x-kubernetes-preserve-unknown-fields: true
+              timeoutSeconds:
+                description: Timeout in seconds; zero means no limit.
+                format: int32
+                type: integer
+              unit:
+                description: Unit is the target, e.g. "postgresql-k8s/0".
+                type: string
+            required:
+            - name
+            - unit
+            type: object
+          status:
+            properties:
+              completed:
+                format: date-time
+                type: string
+              id:
+                description: ID is the integer task id charms see in JUJU_ACTION_UUID.
+                format: int64
+                type: integer
+              log:
+                items:
+                  properties:
+                    message:
+                      type: string
+                    time:
+                      format: date-time
+                      type: string
+                  required:
+                  - message
+                  - time
+                  type: object
+                type: array
+              message:
+                type: string
+              results:
+                x-kubernetes-preserve-unknown-fields: true
+              started:
+                format: date-time
+                type: string
+              state:
+                description: ActionState is the lifecycle of a task.
+                enum:
+                - pending
+                - running
+                - completed
+                - failed
+                - cancelled
+                - aborting
+                - aborted
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

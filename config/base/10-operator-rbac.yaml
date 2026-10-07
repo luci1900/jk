@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jk-operator
+  namespace: jk-system
+---
+# What the operator uses. It creates a Role for each app's agent, so it needs escalate/bind on roles
+# (or to hold every permission it grants; the agent's rules are a subset of the ones below).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: jk-operator
+rules:
+  - apiGroups: [jk.luci1900.github.io]
+    resources: [applications, relations, actions, appdata, unitdata, offers, remotedata]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [jk.luci1900.github.io]
+    resources: [applications/status, applications/finalizers, relations/status, actions/status, offers/status]
+    verbs: [get, update, patch]
+  - apiGroups: [""]
+    resources: [namespaces]
+    verbs: [get, list, watch]
+  - apiGroups: [""]
+    resources: [configmaps, services, serviceaccounts]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [get, list, watch, delete]
+  - apiGroups: [""]
+    resources: [events]
+    verbs: [create, patch]
+  - apiGroups: [apps]
+    resources: [statefulsets]
+    verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: [rbac.authorization.k8s.io]
+    resources: [roles, rolebindings]
+    verbs: [get, list, watch, create, update, patch, delete, escalate, bind]
+  - apiGroups: [coordination.k8s.io]
+    resources: [leases]
+    verbs: [get, list, watch, create, update, patch, delete]
+  # Charm architecture selection (node architectures).
+  - apiGroups: [""]
+    resources: [nodes]
+    verbs: [get, list, watch]
+  # Storage: volumes are patched to Retain (or Delete with destroy-storage); claims are read to find them.
+  - apiGroups: [""]
+    resources: [persistentvolumes]
+    verbs: [get, list, watch, patch]
+  - apiGroups: [""]
+    resources: [persistentvolumeclaims]
+    verbs: [get, list, watch]
+  # Secrets are read to turn grants into Roles. The agents create and own them; the operator only writes the copies it
+  # makes for relations across namespaces.
+  - apiGroups: [""]
+    resources: [secrets]
+    verbs: [get, list, watch, create, update, delete]
+  # trust: cluster ClusterRole and binding per app, deleted by the Application finalizer. escalate/bind are needed
+  # to grant what the operator does not hold itself.
+  - apiGroups: [rbac.authorization.k8s.io]
+    resources: [clusterroles, clusterrolebindings]
+    verbs: [get, list, watch, create, update, patch, delete, escalate, bind]
+  - apiGroups: [storage.k8s.io]
+    resources: [storageclasses]
+    verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: jk-operator
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: jk-operator}
+subjects:
+  - {kind: ServiceAccount, name: jk-operator, namespace: jk-system}

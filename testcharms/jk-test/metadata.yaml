@@ -1,0 +1,30 @@
+name: jk-test
+display-name: jk test charm
+summary: Tiny Pebble charm used by jk's end-to-end tests.
+description: |
+  Runs busybox httpd in a `web` workload container under Pebble, serving a page with the `greeting` config option. Peers with itself (unit and app data), keeps a marker on a filesystem storage and shares an app-owned secret over the peer relation. Provides the `data` endpoint (see jk-test-client): unit and app data, a secret granted to the related application, and the actions echo, fail, sleep and whoami.
+assumes:
+  - k8s-api
+containers:
+  web:
+    resource: web-image
+    mounts:
+      - storage: data
+        location: /data
+storage:
+  data:
+    type: filesystem
+    description: Scratch volume; the charm writes a marker file on attach to show whether the volume is fresh.
+    location: /data
+    minimum-size: 100M
+peers:
+  cluster:
+    interface: jk_test_peers
+provides:
+  data:
+    interface: jk_test_data
+resources:
+  web-image:
+    type: oci-image
+    description: Workload image with an httpd binary.
+    upstream-source: docker.io/library/busybox@sha256:bdf57e528e45e4433820e045b29b4597825a1c9e38353532d90a01445013f82e

@@ -1,0 +1,26 @@
+{
+    "error-list": [],
+    "results": [
+        {
+            "charm": null,
+            "error": {
+                "code": "invalid-charm-base",
+                "extra": {
+                    "default-bases": [
+                        {
+                            "architecture": "amd64",
+                            "channel": "20.04",
+                            "name": "ubuntu"
+                        }
+                    ]
+                },
+                "message": "Instance key 'k1' invalid 'base' in 'install' for charm_id=y2vuZHGLElMmdfcL4q1zJayL9utaheIa name=postgresql-k8s"
+            },
+            "id": "y2vuZHGLElMmdfcL4q1zJayL9utaheIa",
+            "instance-key": "k1",
+            "name": "postgresql-k8s",
+            "released-at": null,
+            "result": "error"
+        }
+    ]
+}

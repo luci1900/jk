@@ -1,0 +1,243 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.22.0
+  name: unitdata.jk.luci1900.github.io
+spec:
+  group: jk.luci1900.github.io
+  names:
+    kind: UnitData
+    listKind: UnitDataList
+    plural: unitdata
+    singular: unitdata
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.workloadStatus.state
+      name: Workload
+      type: string
+    - jsonPath: .spec.agentStatus.state
+      name: Agent
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: UnitData is one unit's state, named <app>-<n> and written only
+          by that unit.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: 'UnitDataSpec is written only by the unit''s agent: everything
+              a hook run commits.'
+            properties:
+              agentStatus:
+                description: AgentStatus and WorkloadStatus as in juju status.
+                properties:
+                  message:
+                    type: string
+                  since:
+                    format: date-time
+                    type: string
+                  state:
+                    description: State is one of juju's workload states (active, blocked,
+                      maintenance, waiting, unknown, error, ...).
+                    type: string
+                required:
+                - state
+                type: object
+              charmRevision:
+                description: CharmRevision is status.charm.revision of the charm the
+                  unit last ran.
+                type: integer
+              charmURL:
+                description: 'CharmURL identifies the charm the unit last ran: the
+                  digest-pinned image reference of status.charm.image (else its sha256).'
+                type: string
+              errorState:
+                description: ErrorState is set when a hook failed and awaits `resolved`.
+                x-kubernetes-preserve-unknown-fields: true
+              obsoleteSecretRevisions:
+                additionalProperties:
+                  items:
+                    type: integer
+                  type: array
+                description: ObsoleteSecretRevisions are the revisions of owned secrets
+                  for which secret-remove has run, by secret URI.
+                type: object
+              openedPorts:
+                items:
+                  description: PortRange is an opened port range.
+                  properties:
+                    from:
+                      format: int32
+                      type: integer
+                    protocol:
+                      type: string
+                    to:
+                      format: int32
+                      type: integer
+                  required:
+                  - from
+                  - protocol
+                  - to
+                  type: object
+                type: array
+              operation:
+                description: Operation is the uniter operation state (kind, step,
+                  hook, op id), opaque to the API.
+                x-kubernetes-preserve-unknown-fields: true
+              ownedSecrets:
+                additionalProperties:
+                  description: |-
+                    OwnedSecret is the index entry of a secret that the unit or the application owns. The metadata Secret is the source
+                    of truth; the index lets the agents find owned secrets by label, and see new revisions, without listing Secrets.
+                  properties:
+                    expireTime:
+                      description: ExpireTime is when the latest revision expires.
+                      format: date-time
+                      type: string
+                    grants:
+                      description: |-
+                        Grants mirrors the grants on the metadata Secret, so that consumers can tell from informer data whether they
+                        may read the secret (and a Forbidden from the API server is a Role that has not caught up yet).
+                      items:
+                        description: |-
+                          SecretGrant is one entry of the SecretGrantsAnnotation: access for an application (and optionally one of its
+                          units or a relation, which the agents enforce, as RBAC works per ServiceAccount).
+                        properties:
+                          application:
+                            type: string
+                          relation:
+                            type: string
+                          unit:
+                            type: string
+                        required:
+                        - application
+                        type: object
+                      type: array
+                    label:
+                      type: string
+                    revision:
+                      description: Revision is the latest revision.
+                      type: integer
+                    revisions:
+                      description: Revisions are the revisions that still exist.
+                      items:
+                        type: integer
+                      type: array
+                  required:
+                  - revision
+                  type: object
+                description: OwnedSecrets indexes the unit-owned secrets by secret
+                  id (the xid).
+                type: object
+              relations:
+                additionalProperties:
+                  description: UnitRelationState is what a unit has written and seen
+                    for one relation.
+                  properties:
+                    applicationVersion:
+                      description: ApplicationVersion is the app-data version this
+                        unit last saw.
+                      format: int64
+                      type: integer
+                    changedPending:
+                      description: ChangedPending is the remote unit whose relation-changed
+                        must run next (juju queues it right after relation-joined).
+                      type: string
+                    created:
+                      description: Created is true once relation-created has run for
+                        this unit.
+                      type: boolean
+                    data:
+                      additionalProperties:
+                        type: string
+                      description: Data is the unit's own relation settings.
+                      type: object
+                    endpoint:
+                      description: |-
+                        Endpoint is the unit's endpoint of the relation and RemoteApp the application on the other side (the unit's own
+                        application for a peer relation). They let a restarted agent depart from a Relation that has been deleted.
+                      type: string
+                    inScope:
+                      description: |-
+                        InScope is true while the unit is part of the relation: other units list it as a member and read its Data.
+                        A unit enters scope before relation-created and leaves it when its remove hook has run (or at relation-broken).
+                      type: boolean
+                    members:
+                      additionalProperties:
+                        format: int64
+                        type: integer
+                      description: Members maps each remote unit to the settings version
+                        this unit last saw.
+                      type: object
+                    remoteApp:
+                      type: string
+                  type: object
+                description: Relations maps relation id to this unit's state in it.
+                type: object
+              state:
+                additionalProperties:
+                  type: string
+                description: State is the data set with state-set.
+                type: object
+              storageAttached:
+                additionalProperties:
+                  type: boolean
+                description: StorageAttached maps storage id (name/index) to whether
+                  storage-attached has run (false once storage-detaching has).
+                type: object
+              trackedSecrets:
+                additionalProperties:
+                  description: TrackedSecret is a consumer's tracked revision of a
+                    secret.
+                  properties:
+                    label:
+                      type: string
+                    revision:
+                      type: integer
+                  required:
+                  - revision
+                  type: object
+                type: object
+              workloadStatus:
+                description: 'WorkloadStatus is a juju status: a state name, a message
+                  and a timestamp.'
+                properties:
+                  message:
+                    type: string
+                  since:
+                    format: date-time
+                    type: string
+                  state:
+                    description: State is one of juju's workload states (active, blocked,
+                      maintenance, waiting, unknown, error, ...).
+                    type: string
+                required:
+                - state
+                type: object
+              workloadVersion:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources: {}

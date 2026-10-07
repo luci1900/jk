@@ -1,0 +1,154 @@
+# Hand-written juju-4 sidecar layout for postgresql-k8s 14/stable (layout spike). Mirrors juju's application.go; see NOTES.md for deviations.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: postgresql-k8s
+  labels: {app.kubernetes.io/name: postgresql-k8s, app.kubernetes.io/managed-by: jk}
+---
+# juju gives the app's SA a Role/RoleBinding for its own namespace (statefulsets, services, pods, secrets, ...); the spike grants it directly.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: postgresql-k8s
+rules:
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: postgresql-k8s
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: postgresql-k8s}
+subjects:
+  - {kind: ServiceAccount, name: postgresql-k8s}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-k8s-endpoints
+  labels: {app.kubernetes.io/name: postgresql-k8s, app.kubernetes.io/managed-by: jk}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector: {app.kubernetes.io/name: postgresql-k8s}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql-k8s
+  labels: {app.kubernetes.io/name: postgresql-k8s, app.kubernetes.io/managed-by: jk}
+spec:
+  selector: {app.kubernetes.io/name: postgresql-k8s}
+  ports:
+    - {name: placeholder, port: 65535, protocol: TCP}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql-k8s
+  labels: {app.kubernetes.io/name: postgresql-k8s, app.kubernetes.io/managed-by: jk}
+spec:
+  replicas: 1
+  serviceName: postgresql-k8s-endpoints
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels: {app.kubernetes.io/name: postgresql-k8s}
+  persistentVolumeClaimRetentionPolicy: {whenScaled: Delete, whenDeleted: Delete}
+  volumeClaimTemplates:
+    - metadata:
+        name: postgresql-k8s-pgdata
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: {requests: {storage: 1Gi}}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: postgresql-k8s}
+    spec:
+      serviceAccountName: postgresql-k8s
+      automountServiceAccountToken: true
+      terminationGracePeriodSeconds: 30
+      enableServiceLinks: false
+      volumes:
+        - name: charm-data
+          emptyDir: {}
+      initContainers:
+        - name: charm-init
+          image: kind.local/jk-spike-agent:dev
+          imagePullPolicy: IfNotPresent
+          workingDir: /var/lib/juju
+          args:
+            - init
+            - --pebble-dir=/containeragent/pebble
+            - --data-dir=/var/lib/juju
+            - --bin-dir=/charm/bin
+            - --charm-image=jk-registry.jk-system.svc:5000/charms/postgresql-k8s@@CHARM_DIGEST@
+          env:
+            - {name: JUJU_CONTAINER_NAMES, value: postgresql}
+            - {name: JK_POD_NAME, valueFrom: {fieldRef: {fieldPath: metadata.name}}}
+          securityContext: {runAsUser: 0, runAsGroup: 0}
+          volumeMounts:
+            - {name: charm-data, mountPath: /var/lib/juju, subPath: var/lib/juju}
+            - {name: charm-data, mountPath: /charm/bin, subPath: charm/bin}
+            - {name: charm-data, mountPath: /charm/containers, subPath: charm/containers}
+            - {name: charm-data, mountPath: /containeragent/pebble, subPath: containeragent/pebble}
+      containers:
+        - name: charm
+          image: ghcr.io/juju/charm-base:ubuntu-22.04
+          imagePullPolicy: IfNotPresent
+          workingDir: /var/lib/juju
+          command: [/charm/bin/pebble]
+          args: [run, --http, ":38812", --verbose]
+          env:
+            - {name: JUJU_CONTAINER_NAMES, value: postgresql}
+            - {name: HTTP_PROBE_PORT, value: "3856"}
+            - {name: JK_POD_NAME, valueFrom: {fieldRef: {fieldPath: metadata.name}}}
+            - {name: JK_MODEL_NAME, valueFrom: {fieldRef: {fieldPath: metadata.namespace}}}
+            - {name: JK_MODEL_UUID, value: "@NAMESPACE_UID@"}
+          securityContext: {runAsUser: 0, runAsGroup: 0}
+          startupProbe:
+            httpGet: {path: "/v1/health?level=alive", port: 38812}
+            periodSeconds: 1
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: {path: "/v1/health?level=alive", port: 38812}
+            periodSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: {path: "/v1/health?level=ready", port: 38812}
+            periodSeconds: 5
+            failureThreshold: 1
+          volumeMounts:
+            - {name: charm-data, mountPath: /charm/bin, subPath: charm/bin, readOnly: true}
+            - {name: charm-data, mountPath: /var/lib/juju, subPath: var/lib/juju}
+            - {name: charm-data, mountPath: /charm/containers, subPath: charm/containers}
+            - {name: charm-data, mountPath: /var/lib/pebble/default, subPath: containeragent/pebble}
+            - {name: charm-data, mountPath: /var/log/juju, subPath: containeragent/var/log/juju}
+            - {name: postgresql-k8s-pgdata, mountPath: /var/lib/juju/storage/pgdata/0}
+        - name: postgresql
+          image: ghcr.io/canonical/charmed-postgresql@sha256:11db80a0b5a2fb24cee833b22bf337cbb6d6f4d3eab2328648320c020644d21e
+          imagePullPolicy: IfNotPresent
+          command: [/charm/bin/pebble]
+          args: [run, --create-dirs, --hold, --http, ":38813", --verbose]
+          env:
+            - {name: JUJU_CONTAINER_NAME, value: postgresql}
+            - {name: PEBBLE_SOCKET, value: /charm/container/pebble.socket}
+            - {name: PEBBLE, value: /charm/container/pebble}
+            - {name: PEBBLE_COPY_ONCE, value: /var/lib/pebble/default}
+          securityContext: {runAsUser: 0, runAsGroup: 0}
+          startupProbe:
+            httpGet: {path: "/v1/health?level=alive", port: 38813}
+            periodSeconds: 1
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: {path: "/v1/health?level=alive", port: 38813}
+            periodSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: {path: "/v1/health?level=ready", port: 38813}
+            periodSeconds: 5
+            failureThreshold: 1
+          volumeMounts:
+            - {name: charm-data, mountPath: /charm/bin/pebble, subPath: charm/bin/pebble, readOnly: true}
+            - {name: charm-data, mountPath: /charm/container, subPath: charm/containers/postgresql}
+            - {name: postgresql-k8s-pgdata, mountPath: /var/lib/postgresql/data}
